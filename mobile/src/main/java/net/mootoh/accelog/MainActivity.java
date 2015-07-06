@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Date;
 import java.util.List;
 
 
@@ -30,6 +31,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     Sensor accelSensor;
     TextView textViewX, textViewY, textViewZ;
     private StringBuffer buffer;
+    CanvasView canvasView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +54,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
 //        accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+
+        canvasView = (CanvasView)findViewById(R.id.canvasView);
     }
 
     void writeBufferToFile() {
-        File file = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "accelog.csv");
-        Log.d(TAG, "location = " + file.getAbsolutePath());
+//        File file = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "accelog.csv");
+        File file = new File("/mnt/sdcard/accelog.csv");
 
         try {
             FileOutputStream fos = new FileOutputStream(file);
@@ -75,8 +79,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             btn.setText("Start");
             writeBufferToFile();
         } else {
-//            sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            sensorManager.registerListener(this, accelSensor, (int)1e6);
+            sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_NORMAL);
+//            sensorManager.registerListener(this, accelSensor, (int)1e6);
             buffer = new StringBuffer();
             btn.setText("Stop");
         }
@@ -96,7 +100,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         textViewX.setText("" + x);
         textViewY.setText("" + y);
         textViewZ.setText("" + z);
-        buffer.append(x + "," + y + "," + z + "\n");
+
+        Date now = new Date();
+        buffer.append(now.toString() + "," + x + "," + y + "," + z + "\n");
+        Log.d(TAG, now.toString() + "," + x + "," + y + "," + z);
+
+        canvasView.setXYZ(x, y, z);
+        canvasView.invalidate();
     }
 
     @Override
