@@ -16,7 +16,7 @@ public class CanvasView extends View {
     private final Paint paint;
     private float x, y, z;
     private int W, H;
-    float maxXYZ = 10.0f;
+    float maxXYZ = 4.0f;
 
     public CanvasView(Context context, AttributeSet attrs) {
         super(context, attrs);
