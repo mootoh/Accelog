@@ -21,6 +21,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -64,7 +66,9 @@ public class MainActivity extends Activity {
 
     void writeBufferToFile() {
 //        File file = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "accelog.csv");
-        File file = new File("/mnt/sdcard/accelog.csv");
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-hhmmss");
+        File file = new File("/mnt/sdcard/" + sdf.format(cal.getTime()) + ".csv");
 
         try {
             FileOutputStream fos = new FileOutputStream(file);
@@ -82,11 +86,10 @@ public class MainActivity extends Activity {
     SensorEventListener accelListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-                    /*
                     float x = cutLow(sensorEvent.values[0]);
                     float y = cutLow(sensorEvent.values[1]);
                     float z = cutLow(sensorEvent.values[2]);
-                    */
+            /*
             float[] xyza = new float[4];
             float[] src = new float[4];
             src[0] = sensorEvent.values[0];
@@ -100,9 +103,20 @@ public class MainActivity extends Activity {
             textViewX.setText("" + cutLow(sensorEvent.values[0]));
             textViewY.setText("" + cutLow(sensorEvent.values[1]));
             textViewZ.setText("" + cutLow(sensorEvent.values[2]));
+            */
 
-            Date now = new Date();
-            buffer.append(now.toString() + "," + x + "," + y + "," + z + "\n");
+            textViewX.setText("" + x);
+            textViewY.setText("" + y);
+            textViewZ.setText("" + z);
+
+            Calendar cal = Calendar.getInstance();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-hhmmssSSS");
+
+            buffer.append(sdf.format(cal.getTime())
+                    + "," + x + "," + y + "," + z
+                    + "," + lastRotation[0] + "," + lastRotation[1] + "," + lastRotation[2]
+                    + "," + lastPitch + "," + lastMagneticHeading
+                    + "\n");
 //        Log.d(TAG, now.toString() + "," + x + "," + y + "," + z);
 
             canvasView.setXYZ(x, y, z);
@@ -115,9 +129,13 @@ public class MainActivity extends Activity {
         }
 
         float cutLow(float value) {
-            return (Math.abs(value) < 0.25f) ? 0.0f : value;
+            return (Math.abs(value) < 0.1f) ? 0.0f : value;
         }
     };
+
+    float[] lastRotation = new float[3];
+    private float lastPitch = 0.0f;
+    private float lastMagneticHeading = 0.0f;
 
     SensorEventListener rotationListener = new SensorEventListener() {
         float cutLow(float value) {
@@ -131,6 +149,10 @@ public class MainActivity extends Activity {
             values[1] = cutLow(sensorEvent.values[1]);
             values[2] = cutLow(sensorEvent.values[2]);
 
+            lastRotation[0] = values[0];
+            lastRotation[1] = values[1];
+            lastRotation[2] = values[2];
+
 //            Log.d(TAG, "rot: " + values[0] + ", " + values[1] + ", " + values[2]);
 
             SensorManager.getRotationMatrixFromVector(mRotationMatrix, values);
@@ -143,6 +165,8 @@ public class MainActivity extends Activity {
             float magneticHeading = (float) Math.toDegrees(mOrientation[0]);
 //            Log.d(TAG, "pitch, heading = " + mPitch + ", " + magneticHeading);
 //                    float mHeading = mod(computeTrueNorth(magneticHeading), 360.0f) - ARM_DISPLACEMENT_DEGREES;
+            lastPitch = mPitch;
+            lastMagneticHeading = magneticHeading;
         }
 
         public int mod(int a, int b) {
